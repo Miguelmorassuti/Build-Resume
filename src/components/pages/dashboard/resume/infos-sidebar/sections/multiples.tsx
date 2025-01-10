@@ -11,13 +11,18 @@ import {
 } from "lucide-react";
 import { MultipleDragItemData, MultipleDragList } from "../multiple-drag-list";
 import { ManageMultipleItemDialog } from "../multiple-drag-list/manage-multiple-dialog";
+import { useFormContext } from "react-hook-form";
 
 export const MultiplesSections = () => {
-  const [sectionToAdd, setSectionAdd] = useState<MultipleDragItemData | null>(
+  const { getValues } = useFormContext();
+
+  const [sectionToAdd, setSectionToAdd] = useState<MultipleDragItemData | null>(
     null
   );
 
-  console.log(sectionToAdd);
+  const [initialData, setInitialData] = useState<MultipleDragItemData | null>(
+    null
+  );
 
   const sectionsKeys: MultipleDragItemData[] = [
     {
@@ -70,6 +75,15 @@ export const MultiplesSections = () => {
       descriptionKey: "description",
     },
   ];
+
+  const onEdit = (section: MultipleDragItemData, index: number) => {
+    const currentValues = getValues();
+    const currentItens = currentValues.content[section.formKey];
+
+    setSectionToAdd(section);
+    setInitialData(currentItens[index]);
+  };
+
   return (
     <div>
       {sectionsKeys.map((section) => (
@@ -78,19 +92,25 @@ export const MultiplesSections = () => {
           <MultipleDragList
             data={section}
             onAdd={() => {
-              setSectionAdd(section);
+              setSectionToAdd(section);
             }}
-            onEdit={(index) => {}}
+            onEdit={(index) => {
+              onEdit(section, index);
+            }}
           />
         </Fragment>
       ))}
 
       {sectionToAdd && (
         <ManageMultipleItemDialog
+          initialData={initialData}
           data={sectionToAdd}
           open={!!sectionToAdd}
           setOpen={(value) => {
-            if (!value) setSectionAdd(null);
+            if (!value) {
+              setSectionToAdd(null);
+              setInitialData(null);
+            }
           }}
         />
       )}

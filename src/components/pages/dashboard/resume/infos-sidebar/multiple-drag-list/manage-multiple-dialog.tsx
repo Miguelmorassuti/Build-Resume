@@ -1,16 +1,21 @@
 import { BaseDialogProps, Dialog } from "@/components/ui/dialog";
 import { MultipleDragItemData, ResumeArrayKeys } from ".";
-import { FormProvider, useForm } from "react-hook-form";
-import { Fragment, useMemo } from "react";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import { Fragment, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { InputField } from "@/components/ui/input/field";
 import { EditorField } from "@/components/ui/editor/field";
 import { IconField } from "@/components/ui/icon-input/field";
 import { SliderField } from "@/components/ui/slider/field";
+import { Badge } from "@/components/ui/badge";
+import { v4 as uuid } from "uuid";
+import { toast } from "sonner";
 
 type ManageMultipleDialogProps = BaseDialogProps & {
   data: MultipleDragItemData;
+  setOpen: (open: boolean) => void;
+  initialData: any;
 };
 
 type FormConfig<T> = {
@@ -233,12 +238,16 @@ export const ManageMultipleItemDialog = ({
   data,
   open,
   setOpen,
+  initialData,
 }: ManageMultipleDialogProps) => {
   const methods = useForm();
+  const { setValue, getValues } = useFormContext<ResumeData>();
 
-  const onSubmit = (formData: any) => {
-    console.log(formData);
-  };
+  const isEditing = !!initialData;
+
+  useEffect(() => {
+    if (initialData) methods.reset(initialData);
+  }, [initialData, methods]);
 
   const formContent = useMemo(() => {
     const config = formConfig[data.formKey];
@@ -263,11 +272,72 @@ export const ManageMultipleItemDialog = ({
           {fieldType === "editor" && <EditorField {...inputProps} />}
           {fieldType === "icon" && <IconField {...inputProps} />}
           {fieldType === "slider" && <SliderField {...inputProps} />}
-          {fieldType === "keywords" && <InputField {...inputProps} />}
+          {fieldType === "keywords" && (
+            <InputField
+              {...inputProps}
+              extraContent={(value) => (
+                <div className="flex gap-2 flex-wrap mt-1">
+                  {value?.split(",").map((keyword, index) => {
+                    if (!keyword.trim()) return null;
+
+                    return <Badge key={`keyword-${index}`}>{keyword}</Badge>;
+                  })}
+                </div>
+              )}
+            />
+          )}
         </Fragment>
       );
     });
   }, [data.formKey]);
+
+  const onDelete = () => {
+    const currentValue = getValues();
+
+    const formKey = data.formKey;
+    const currentFieldValue = currentValue.content[formKey] ?? [];
+
+    const updatedItems = currentFieldValue.filter(
+      (item: any) => item.id !== initialData.id
+    );
+
+    setValue(`content.${formKey}`, updatedItems);
+    setOpen(false);
+    toast.success("Item removido com sucesso!");
+  };
+
+  const onSubmit = (formData: any) => {
+    const currentValue = getValues();
+
+    const formKey = data.formKey;
+    const currentFieldValue = currentValue.content[formKey] ?? [];
+
+    if (isEditing) {
+      const updateItems = currentFieldValue.map((item: any) => {
+        if (item.id == initialData.id) {
+          return formData;
+        }
+
+        return item;
+      });
+
+      setValue(`content.${formKey}`, updateItems);
+      setOpen(false);
+      toast.success("Item atualizado com sucesso!");
+
+      return;
+    }
+
+    setValue(`content.${formKey}`, [
+      ...currentFieldValue,
+      {
+        ...formData,
+        id: uuid(),
+      },
+    ]);
+    setOpen(false);
+    toast.success("Item adicionado com sucesso!");
+  };
 
   return (
     <Dialog
@@ -284,8 +354,13 @@ export const ManageMultipleItemDialog = ({
           </div>
 
           <div className="ml-auto flex gap-3">
+            {isEditing && (
+              <Button variant="destructive" onClick={onDelete}>
+                Remover
+              </Button>
+            )}
             <Button type="submit" className="w-max">
-              Adicionar
+              {isEditing ? "Salvar" : "Adicionar"}
             </Button>
           </div>
         </form>
