@@ -44,7 +44,7 @@ export const ThemeSection = () => {
                     isSelected && "ring-2 ring-foreground"
                   )}
                   onClick={() => field.onChange(colorKey)}
-                  style={{ backgroundColor: colors[colorKey[500]] }}
+                  style={{ backgroundColor: colors[colorKey][500] }}
                 ></Button>
               );
             })}
