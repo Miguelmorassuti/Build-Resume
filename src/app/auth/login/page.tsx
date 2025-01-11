@@ -3,12 +3,17 @@ import Logo from "@/assets/logo.svg";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Chrome, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { signIn } from "@/lib/auth";
 
 type Providers = "github" | "google";
 
 export default function LoginPage() {
   const handleLogin = async (form: FormData) => {
     "use server";
+
+    const provider = form.get("provider") as Providers;
+
+    await signIn(provider, { redirectTo: "/dashboard/resumes" });
   };
 
   return (
@@ -40,7 +45,7 @@ export default function LoginPage() {
           <Button
             variant="outline"
             className="w-full gap-2"
-            type="button"
+            type="submit"
             name="provider"
             value="github"
           >
@@ -49,7 +54,7 @@ export default function LoginPage() {
           </Button>{" "}
           <Button
             className="w-full gap-2"
-            type="button"
+            type="submit"
             name="provider"
             value="google"
           >
