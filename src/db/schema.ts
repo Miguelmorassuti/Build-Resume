@@ -5,6 +5,8 @@ import {
   text,
   primaryKey,
   integer,
+  uuid,
+  json,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
@@ -94,3 +96,14 @@ export const authenticators = pgTable(
 );
 
 // PLATFORM
+
+export const resumes = pgTable("resumes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  data: json("data").default({}).notNull(),
+  userId: text("userId")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updateAt: timestamp("createdAt").defaultNow().notNull(),
+});
