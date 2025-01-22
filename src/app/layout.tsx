@@ -5,12 +5,17 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/shared/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
+import { setDefaultOptions } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 const fontSans = Nunito_Sans({ subsets: ["latin"], variable: "--fontSans" });
 const fontTitle = Nunito({ subsets: ["latin"], variable: "--fontTitle" });
 
 export const metadata: Metadata = {
   title: "Build Resume",
 };
+
+setDefaultOptions({ locale: ptBR });
 
 export default function RootLayout({
   children,
